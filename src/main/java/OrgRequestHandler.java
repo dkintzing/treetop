@@ -8,13 +8,15 @@ import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-
+/*
+ * OrgRequestHandler passes the query to the organizationDB and converts
+ * the array of organizations into JSON that is returned to the client
+ */
 class OrgRequestHandler implements HttpHandler {
 
 
     public void handle(HttpExchange exchange) throws IOException {
 
-       System.out.println( exchange.getRequestURI());
         ArrayList<Organization> organizations = null;
         try {
             organizations = OrganizationDB.getInstance().selectOrganizations(exchange.getRequestURI().getQuery());

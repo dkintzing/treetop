@@ -23,7 +23,6 @@ public class ApiServer {
         }
 
         try {
-            //start httpserver on port 8080 and listen for /organizations endpoint and process request in OrgRequestHandler
             HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
             final HttpContext context = server.createContext("/organizations", new OrgRequestHandler());
             server.setExecutor(null);

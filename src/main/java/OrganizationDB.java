@@ -7,6 +7,11 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.Properties;
 
+
+/*
+ *  OrganizationDB populates an in memory database with organizations
+ *  and handles selecting organizations based on the api query parameters
+ */
 public class OrganizationDB {
 
     private static OrganizationDB organizationDB = null;
@@ -40,12 +45,9 @@ public class OrganizationDB {
         statement.execute(createTable);
 
 
-        //load rows from file
+        //load rows from the provided file removing duplicates
         try {
-            String fileLoc = System.getProperty("user.dir") + "/src/main/resources/organization_sample_data.csv";
-
-            File f = new File(fileLoc);
-            BufferedReader bufferedReader = new BufferedReader(new FileReader(f));
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("organization_sample_data.csv")));
             String line;
             while((line = bufferedReader.readLine()) != null) {
                 if(line.contains("id,name,city,state,postal,category")) {
@@ -114,9 +116,6 @@ public class OrganizationDB {
                 }
             }
 
-            ResultSet resultSet = statement.executeQuery("select count (*) from organizations");
-            resultSet.first();
-            System.out.println(resultSet.getInt(1));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException ioe) {
@@ -125,8 +124,10 @@ public class OrganizationDB {
 
     }
 
+    /*
+     * checkForDuplicate is uses when loading organizations to see if we have a duplicate
+     */
     private boolean checkForDuplicate(String name, String city, String state, String postal, String category) throws SQLException {
-
 
         PreparedStatement statement = connection.prepareStatement("select name,city,state,postal,category from organizations where name = ?"
                 +  " and city = ? and state = ? and postal = ?"
@@ -147,6 +148,11 @@ public class OrganizationDB {
     }
 
 
+
+    /*
+     * select Organizations takes the query parameters and returns
+     * and array of organization objects that match the query selection.
+     */
     public ArrayList<Organization> selectOrganizations(String query) throws SQLException {
         ArrayList<Organization> organizations = new ArrayList<Organization>();
         String name = null;
@@ -159,8 +165,9 @@ public class OrganizationDB {
         String direction = "ASC";
 
         boolean hasQuery = true;
+        boolean hasValidQuery = false;
 
-        System.out.println("QUERY " + query);
+        //step one is to determine which query parameters we received
         if(query == null) {
             hasQuery = false;
         }
@@ -168,29 +175,27 @@ public class OrganizationDB {
             String [] params = query.split("&");
 
             for(int i = 0; i < params.length; i++) {
-                System.out.println("param " + params[i]);
                 if(params[i].startsWith("Name")) {
-                    System.out.println("FOUND NAME " + params[i]);
                     name = params[i].split("=")[1];
+                    hasValidQuery = true;
                 }
                 else if(params[i].startsWith("City")) {
-                    System.out.println("FOUND CITY " + params[i]);
                     city = params[i].split("=")[1];
+                    hasValidQuery = true;
                 }
                 else if(params[i].startsWith("State")) {
-                    System.out.println("FOUND STATE " + params[i]);
                     state = params[i].split("=")[1];
+                    hasValidQuery = true;
                 }
                 else if(params[i].startsWith("Postal")) {
-                    System.out.println("FOUND POSTAL " + params[i]);
                     postal = params[i].split("=")[1];
+                    hasValidQuery = true;
                 }
                 else if(params[i].startsWith("Category")) {
-                    System.out.println("FOUND CATEGORY " + params[i]);
                     category = params[i].split("=")[1];
+                    hasValidQuery = true;
                 }
                 else if(params[i].startsWith("Orderby")) {
-                    System.out.println("FOUND ORDERBY " + params[i]);
                     orderby = true;
                     orderField = params[i].split("=")[1];
                 }
@@ -199,25 +204,16 @@ public class OrganizationDB {
                 }
             }
 
-            System.out.println(name);
-            System.out.println(city);
-            System.out.println(state);
-            System.out.println(postal);
-            System.out.println(category);
-            System.out.println(orderby);
-            System.out.println(orderField);
-            System.out.println(direction);
-
         } //end if query
 
+
+        //next step is to get the value for any parameters we received and build a where clause at the same time
         boolean started = false;
         int nameParameter = 0;
         int cityParameter = 0;
         int stateParameter = 0;
         int postalParameter = 0;
         int categoryParameter = 0;
-        int orderByParameter = 0;
-        int orderDirection = 0;
         int parameterCount = 0;
         String whereClause = "where ";
         if(name != null) {
@@ -225,7 +221,6 @@ public class OrganizationDB {
             whereClause += "name = ?";
             parameterCount++;
             nameParameter = parameterCount;
-            System.out.println("name " + nameParameter);
         }
         if(city != null) {
             if(started) {
@@ -237,7 +232,6 @@ public class OrganizationDB {
             }
             parameterCount++;
             cityParameter = parameterCount;
-            System.out.println("city " + cityParameter);
         }
         if(state != null) {
             if(started) {
@@ -249,7 +243,6 @@ public class OrganizationDB {
             }
             parameterCount++;
             stateParameter = parameterCount;
-            System.out.println("state " + stateParameter);
         }
         if(postal != null) {
             if(started) {
@@ -261,7 +254,6 @@ public class OrganizationDB {
             }
             parameterCount++;
             postalParameter = parameterCount;
-            System.out.println("postal " + postalParameter);
         }
         if(category != null) {
             if(started) {
@@ -272,7 +264,6 @@ public class OrganizationDB {
             }
             parameterCount++;
             categoryParameter = parameterCount;
-            System.out.println("category " + categoryParameter) ;
         }
         if(orderby) {
             whereClause += " order by " + orderField + " ";
@@ -285,13 +276,14 @@ public class OrganizationDB {
             }
         }
 
-        String sqlQuery = "select * from organizations " + whereClause;
-        PreparedStatement statement = connection.prepareStatement(sqlQuery, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-        System.out.println("WHERE " + whereClause);
+        //now put together our query and run it
+        PreparedStatement statement = null;
+        String sqlQuery = "select * from organizations ";
+        if(hasQuery && hasValidQuery) {
+            sqlQuery += whereClause;
+            statement = connection.prepareStatement(sqlQuery, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
-        System.out.println(sqlQuery);
-        if(hasQuery) {
-            //statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+
             if (name != null) {
                 statement.setString(nameParameter, name);
             }
@@ -308,20 +300,26 @@ public class OrganizationDB {
                 statement.setString(categoryParameter, category);
             }
         }
-        else {
-            sqlQuery = "select * from organizations ";
-            statement = connection.prepareStatement(sqlQuery
-                    , ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        else if(hasQuery && !hasValidQuery) {
+            return null;
         }
-        System.out.println("SQL QUERY " + sqlQuery);
+        else {
+            if(orderby) {
+                sqlQuery += " order by " + orderField + " ";
+
+                if(direction.equalsIgnoreCase("ASC")) {
+                    sqlQuery += "asc";
+                }
+                else {
+                    sqlQuery += "desc";
+                }
+            }
+            statement = connection.prepareStatement(sqlQuery, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        }
 
         ResultSet resultSet = statement.executeQuery();
-//        if(resultSet.first()) {
-//            System.out.println("GOT FIRST");
-//        }
-//        else {
-//            System.out.println("NO FIRST");
-//        }
+
+        //create organization objects from the query results and add then to an array
         while(resultSet.next()) {
             int rid = resultSet.getInt("id");
             String rname = resultSet.getString("name");
@@ -338,10 +336,11 @@ public class OrganizationDB {
             org.setPostal(rpostal);
             org.setCategory(rcategory);
             organizations.add(org);
-            System.out.println("ROW " + String.valueOf(rid) + " " + rname + " " + rcity + " " + rstate + " " + rpostal + " " + rcategory);
-        }
+
+        }  //end while resultSet
 
         return organizations;
-    }
 
-}
+    } //end selectOrganizations
+
+} //end class

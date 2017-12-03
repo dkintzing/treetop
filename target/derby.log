@@ -1,0 +1,13 @@
+----------------------------------------------------------------
+Sun Dec 03 15:47:45 MST 2017:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.1.0 - (1808820): instance a816c00e-0160-1e90-5d17-00000f800000 
+on database directory memory:/Users/donaldkintzing/codes/treetop/target/treetop with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@4f8e5cde 
+Loaded from file:/Users/donaldkintzing/codes/treetop/target/apitest-1.0-SNAPSHOT-jar-with-dependencies.jar
+java.vendor=Oracle Corporation
+java.runtime.version=9.0.1+11
+user.dir=/Users/donaldkintzing/codes/treetop/target
+os.name=Mac OS X
+os.arch=x86_64
+os.version=10.12.5
+derby.system.home=null
+Database Class Loader started - derby.database.classpath=''

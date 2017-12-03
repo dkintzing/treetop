@@ -1,11 +1,11 @@
 ----------------------------------------------------------------
-Sat Dec 02 21:53:48 MST 2017:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.1.0 - (1808820): instance a816c00e-0160-1ab9-1e31-00000f384970 
-on database directory memory:/Users/donaldkintzing/IdeaProjects/apitest/treetop with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@4f8e5cde 
+Sun Dec 03 15:43:36 MST 2017:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.1.0 - (1808820): instance a816c00e-0160-1e8c-8e32-00000f382118 
+on database directory memory:/Users/donaldkintzing/codes/treetop/treetop with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@4f8e5cde 
 Loaded from file:/Users/donaldkintzing/.m2/repository/org/apache/derby/derby/10.14.1.0/derby-10.14.1.0.jar
 java.vendor=Oracle Corporation
 java.runtime.version=9.0.1+11
-user.dir=/Users/donaldkintzing/IdeaProjects/apitest
+user.dir=/Users/donaldkintzing/codes/treetop
 os.name=Mac OS X
 os.arch=x86_64
 os.version=10.12.5
