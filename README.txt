@@ -12,5 +12,6 @@ What I would add if more time.
 3.  Related to testing, I would look at the code more carefully for robustness.
 4.  I used an in memory DB to make it convenient for you to run the code, so depending on 
     the expected load/usage a different DB may be needed.
+5.  The web server was also started from the code which would change in a real situation.
 
 
