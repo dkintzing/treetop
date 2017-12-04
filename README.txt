@@ -1,7 +1,7 @@
 this project can be run from the target directory like this. 
 
 java -jar apitest-1.0-SNAPSHOT-jar-with-dependencies.jar
-
+the api will be available on localhost:8000
 
 It was created with IntelliJ so it can be run from within the ide as well.
 
